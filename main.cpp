@@ -13,7 +13,7 @@ std::vector<std::string> getWavFiles(std::filesystem::path path) {
     std::vector<std::string> wavFiles;
     for (const auto& entry : fs::directory_iterator(path)) {
         if (entry.path().extension() == ".wav") {
-            wavFiles.push_back(entry.path().string());
+            wavFiles.push_back(entry.path().filename().string());
         }
     }
     return wavFiles;
@@ -40,9 +40,12 @@ void displayMenu(WINDOW* menuWin, const std::vector<std::string>& files, int sel
 
 int main(int argc, char* argv[]) {
     std::vector<std::string> wavFiles;
+    std::string path = "./";
+
     if (argc >= 2) {
         if (std::filesystem::is_directory(argv[1])) {
             wavFiles = getWavFiles(argv[1]);
+            path = std::string(argv[1]) + "/";
         } else {
             //  TODO: play single file
             std::cout << "Forthcoming." << std::endl;
@@ -120,7 +123,7 @@ int main(int argc, char* argv[]) {
            }
             nodelay(menuWin, FALSE);    //  restore blocking input
         } else if (inputKey == 10) {    //  enter
-            ma_engine_play_sound(&engine, wavFiles[selected].c_str(), NULL);
+            ma_engine_play_sound(&engine, (path + wavFiles[selected]).c_str(), NULL);
         }
 
         displayMenu(menuWin, wavFiles, selected, scrollOffset);
