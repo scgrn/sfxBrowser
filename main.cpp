@@ -9,11 +9,11 @@
 
 namespace fs = std::filesystem;
 
-std::vector<std::string> getWavFiles() {
+std::vector<std::string> getWavFiles(std::filesystem::path path) {
     std::vector<std::string> wavFiles;
-    for (const auto& entry : fs::directory_iterator(fs::current_path())) {
+    for (const auto& entry : fs::directory_iterator(path)) {
         if (entry.path().extension() == ".wav") {
-            wavFiles.push_back(entry.path().filename().string());
+            wavFiles.push_back(entry.path().string());
         }
     }
     return wavFiles;
@@ -39,13 +39,23 @@ void displayMenu(WINDOW* menuWin, const std::vector<std::string>& files, int sel
 }
 
 int main(int argc, char* argv[]) {
-    std::vector<std::string> wavFiles = getWavFiles();
-    std::sort(wavFiles.begin(), wavFiles.end());
-
+    std::vector<std::string> wavFiles;
+    if (argc >= 2) {
+        if (std::filesystem::is_directory(argv[1])) {
+            wavFiles = getWavFiles(argv[1]);
+        } else {
+            //  TODO: play single file
+            std::cout << "Forthcoming." << std::endl;
+            return 0;
+        }
+    } else {
+        wavFiles = getWavFiles(std::filesystem::current_path());
+    }
     if (wavFiles.empty()) {
-        std::cout << "No .wav files found in the current directory." << std::endl;
+        std::cout << "No .wav files found. Check path and try again." << std::endl;
         return 0;
     }
+    std::sort(wavFiles.begin(), wavFiles.end());
 
     ma_result result;
     ma_engine engine;
