@@ -36,27 +36,24 @@ void displayMenu(WINDOW* menuWin, const std::vector<std::string>& files, int sel
     wrefresh(menuWin);
 }
 
+void playSound(ma_engine &engine, std::string path) {
+    ma_result result;
+    ma_sound sound;
+
+    result = ma_sound_init_from_file(&engine, path.c_str(), 0, NULL, NULL, &sound);
+    if (result != MA_SUCCESS) {
+        std::cout << "Unable to load sound." << std::endl;
+        return;
+    }
+
+    ma_sound_start(&sound);
+    while (!ma_sound_at_end(&sound));
+    ma_sound_uninit(&sound);
+}
+
 int main(int argc, char* argv[]) {
     std::vector<std::string> wavFiles;
     std::string path = "./";
-
-    if (argc >= 2) {
-        if (std::filesystem::is_directory(argv[1])) {
-            wavFiles = getWavFiles(argv[1]);
-            path = std::string(argv[1]) + "/";
-        } else {
-            //  TODO: play single file
-            std::cout << "Forthcoming." << std::endl;
-            return 0;
-        }
-    } else {
-        wavFiles = getWavFiles(std::filesystem::current_path());
-    }
-    if (wavFiles.empty()) {
-        std::cout << "No .wav files found. Check path and try again." << std::endl;
-        return 0;
-    }
-    std::sort(wavFiles.begin(), wavFiles.end());
 
     ma_result result;
     ma_engine engine;
@@ -65,6 +62,25 @@ int main(int argc, char* argv[]) {
         std::cout << "Failed to initialize audio engine." << std::endl;
         return -1;
     }
+
+    if (argc >= 2) {
+        if (std::filesystem::is_directory(argv[1])) {
+            wavFiles = getWavFiles(argv[1]);
+            path = std::string(argv[1]) + "/";
+        } else {
+            playSound(engine, argv[1]);
+            ma_engine_uninit(&engine);
+            return 0;
+        }
+    } else {
+        wavFiles = getWavFiles(std::filesystem::current_path());
+    }
+    if (wavFiles.empty()) {
+        std::cout << "No .wav files found. Check path and try again." << std::endl;
+        ma_engine_uninit(&engine);
+        return 0;
+    }
+    std::sort(wavFiles.begin(), wavFiles.end());
 
     //  init ncurses
     initscr();
