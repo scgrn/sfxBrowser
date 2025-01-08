@@ -7,11 +7,9 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 
-namespace fs = std::filesystem;
-
 std::vector<std::string> getWavFiles(std::filesystem::path path) {
     std::vector<std::string> wavFiles;
-    for (const auto& entry : fs::directory_iterator(path)) {
+    for (const auto& entry : std::filesystem::directory_iterator(path)) {
         if (entry.path().extension() == ".wav") {
             wavFiles.push_back(entry.path().filename().string());
         }
